@@ -41,8 +41,8 @@ def from_orbital_to_cartesian_coordinates(a, e, i, RAAN, om, t, mu):
 
     # computing true anomaly
     nu = 2 * math.atan2(
-            math.sqrt(1 + e) * math.sin(E / 2),
-            math.sqrt(1 - e) * math.cos(E / 2)
+            math.sqrt(1 - e) * math.cos(E / 2),
+            math.sqrt(1 + e) * math.sin(E / 2)
         ) % (math.pi * 2)
 
     # computing radius
@@ -163,7 +163,7 @@ def twilight_function(x):
 
     return y
 
-def scale_np_array(input_array):
+def normalize_np_array(input_array):
     '''
     Normalize array
     - Inputs:
@@ -177,3 +177,21 @@ def scale_np_array(input_array):
         return input_array
 
     return input_array / max_value
+
+def normalize_each_time_frame(input_array):
+    """
+    Normalize each time frame
+
+    - Input:    3D numpy array
+    - Output:   3D numpy array
+    """
+
+    for i in range(input_array.shape[0]):
+
+        max_value = np.amax(input_array[i, :, :])
+
+        if max_value != 0:
+
+            input_array[i, :, :] = input_array[i, :, :] / max_value
+
+    return input_array
