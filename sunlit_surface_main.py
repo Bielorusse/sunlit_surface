@@ -14,10 +14,6 @@ import os
 
 start_date = datetime.datetime.now()
 
-# Declaring time variables
-NUMBER_OF_ITERATIONS = int(round(3 * 58.646))
-DELTA_T = 86400 # in seconds
-
 # Declaring planet surface spatial resolution in degrees
 SPATIAL_RESOLUTION = 10
 
@@ -34,6 +30,10 @@ PLANET_RADIUS = 2440 # in km
 PLANET_SIDEREAL_PERIOD = 58.646 * 86400 # in seconds
 PLANET_ROTATIONAL_VELOCITY = 360 / PLANET_SIDEREAL_PERIOD # in degrees per second
 PLANET_AXIAL_TILT = 2 # in degrees
+
+# Declaring time variables
+NUMBER_OF_ITERATIONS = int(round(6 * PLANET_SIDEREAL_PERIOD / 86400))
+DELTA_T = 86400 # in seconds
 
 # Declaring time, latitude and longitude arrays
 time = list(range(0, NUMBER_OF_ITERATIONS * DELTA_T, DELTA_T))
@@ -61,6 +61,11 @@ for j in range(len(time)):
     for k in range(len(lat)):
 
         for l in range(len(lon)):
+
+            prompt_progress(
+                j * len(lon) * len(lat) + k * len(lon) + l,
+                len(time) * len(lat) * len(lon)
+            )
 
             surface_position_vector = geographic_to_cartesian_coord(lat[k], lon[l], PLANET_RADIUS)
 
