@@ -6,6 +6,7 @@ Python module for sunlit_surface
 
 import math
 import numpy as np
+import sys
 
 def from_orbital_to_cartesian_coordinates(a, e, i, RAAN, om, t, mu):
     '''
@@ -195,3 +196,10 @@ def normalize_each_time_frame(input_array):
             input_array[i, :, :] = input_array[i, :, :] / max_value
 
     return input_array
+
+def prompt_progress(iterations_done, iterations_total):
+
+    progress_percent = iterations_done * 100.0 / iterations_total
+
+    sys.stdout.write("Progress: {0:.2f} % \r".format(progress_percent))
+    sys.stdout.flush()
