@@ -15,7 +15,7 @@ import os
 start_date = datetime.datetime.now()
 
 # Declaring planet surface spatial resolution in degrees
-SPATIAL_RESOLUTION = 10
+SPATIAL_RESOLUTION = 90
 
 # Declaring planet's orbital parameters
 PLANET_SEMI_MAJOR_AXIS = 57909176 # in km
@@ -110,7 +110,42 @@ with open(
         + "    - computation time (h:m:s)      {}\n".format(end_date - start_date)
         + "    - simulation time (s)           {}\n".format(NUMBER_OF_ITERATIONS * DELTA_T)
         + "    - spatial resolution (degrees)  {}\n".format(SPATIAL_RESOLUTION)
+        + "----------------------------------------------\n\n"
     )
+
+    file.write(
+        "Time array: \n"
+    )
+
+    for i in range(len(time) - 1):
+        file.write(str(time[i]) + ",")
+    file.write(str(time[-1]) + "\n\n")
+
+    file.write(
+        "Latitudes array: \n"
+    )
+
+    for i in range(len(lat) - 1):
+        file.write(str(lat[i]) + ",")
+    file.write(str(lat[-1]) + "\n\n")
+
+    file.write(
+        "Longitudes array: \n"
+    )
+
+    for i in range(len(lon) - 1):
+        file.write(str(lon[i]) + ",")
+    file.write(str(lon[-1]) + "\n\n")
+
+    file.write(
+        "Sunlight data: \n"
+    )
+
+    for i in range(len(sunlight)):
+        for j in range(len(sunlight[i])):
+            for k in range(len(sunlight[i][j]) - 1):
+                file.write(str(sunlight[i][j][k]) + ",")
+            file.write(str(sunlight[i][j][-1]) + "\n")
 
 '''
 Displaying animation--------------------------------------------------------------------------------
