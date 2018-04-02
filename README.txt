@@ -1,4 +1,4 @@
-Sunlit_surface V0.0.11
+Sunlit_surface V0.1.2
 Date: 21.03.2018
 Author: Thibaut Voirand
 
@@ -8,4 +8,4 @@ develop an animation showing the temporal evolution of the sunlit areas of Mercu
 potentially be used for the case of any other planet orbiting a star.
 
 Added in this version:
-    - prompt progress 
+    - 3D_script has import data function, displays sunlight data
