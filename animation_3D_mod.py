@@ -1,7 +1,6 @@
 """
 animation_3D_mod.py
 module for 3D animation based on opengl and pygame
-runs with python 2.7
 """
 
 import numpy as np
@@ -10,7 +9,7 @@ import sys
 from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
-from sunlit_surface_module import *
+from science_mod import *
 
 RGB_colorbar_list = [
     [0.,0.,0.],
@@ -315,21 +314,28 @@ def colorbar_abs(float, color_list):
 
     return RGB
 
-def display_planet(lat, lon, PLANET_RADIUS, sunlight_data_list):
+def display_planet(time, lat, lon, PLANET_ROTATIONAL_VELOCITY, PLANET_RADIUS, sunlight_data_list):
     """
     displays the planet as polyhedron with sunlight time data in color
     input:
-     - lat                  list
-     - lon                  list
-     - planet_radius        float
-     - sunlight_data_list   list
+     - time                         float
+     - lat                          list
+     - lon                          list
+     - PLANET_ROTATIONAL_VELOCITY   float
+     - planet_radius                float
+     - sunlight_data_list           list
     """
 
     # defining list of the vertices of the polyhedron representing the planet
     planet_vertices = []
     for i in range(len(lat)):
         for j in range(len(lon)):
-            planet_vertices.append(geographic_to_cartesian_coord(lat[i], lon[j], PLANET_RADIUS))
+            vertices_coords = geographic_to_cartesian_coord(lat[i], lon[j], PLANET_RADIUS)
+            vertices_coords = rotate_frame_around_z(
+                vertices_coords,
+                PLANET_ROTATIONAL_VELOCITY * time
+            )
+            planet_vertices.append(vertices_coords)
 
     # defining list of edges connecting vertices of the polyhedron representing the planet
     planet_edges = []
@@ -375,7 +381,46 @@ def display_planet(lat, lon, PLANET_RADIUS, sunlight_data_list):
 
     glEnd()
 
-def display_animation(lat, lon, PLANET_RADIUS, sunlight_data):
+def display_sun_direction(planet_position_vector):
+    """
+    display sun direction
+    input:
+     - planet_position_vector list
+    """
+
+    sun_dir_vertices = [
+        (0, 0, 0),
+        (- planet_position_vector[0], - planet_position_vector[1], - planet_position_vector[2])
+    ]
+
+    glBegin(GL_LINES)
+
+    glColor4fv((1, 1, 1, 0.5))
+
+    for i in range(len(sun_dir_vertices)):
+
+        glVertex3fv(sun_dir_vertices[i])
+
+    glEnd()
+
+def display_animation(
+    time,
+    lat,
+    lon,
+    PLANET_ROTATIONAL_VELOCITY,
+    PLANET_RADIUS,
+    planet_position_vectors,
+    sunlight_data
+):
+    """
+    displays animation
+    input:
+     - lat                      list
+     - lon                      list
+     - PLANET_RADIUS            float
+     - planet_position_vectors  list
+     - sunlight_data            numpy array of floats
+    """
 
     time_count = 0 # initializing time counter
 
@@ -402,7 +447,7 @@ def display_animation(lat, lon, PLANET_RADIUS, sunlight_data):
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
         # resetting time counter to zero when reached the end of the animation
-        if time_count == len(sunlight_data):
+        if time_count == len(time):
 
             time_count = 0
 
@@ -412,10 +457,19 @@ def display_animation(lat, lon, PLANET_RADIUS, sunlight_data):
             for k in range(len(sunlight_data[time_count][j]) - 1):
                 sunlight_data_list.append(sunlight_data[time_count, j, k])
 
-        display_planet(lat, lon, PLANET_RADIUS, sunlight_data_list)
+        display_planet(
+            time[time_count],
+            lat,
+            lon,
+            PLANET_ROTATIONAL_VELOCITY,
+            PLANET_RADIUS,
+            sunlight_data_list
+        )
+
+        display_sun_direction(planet_position_vectors[time_count])
 
         time_count += 1 # increasing time counter
 
         pygame.display.flip()
 
-        pygame.time.wait(10)
+        pygame.time.wait(100)
