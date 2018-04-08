@@ -5,6 +5,7 @@ Python main script for sunlit_surface
 '''
 
 from sunlit_surface_module import *
+from animation_3D_mod import *
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,7 +16,7 @@ import os
 start_date = datetime.datetime.now()
 
 # Declaring planet surface spatial resolution in degrees
-SPATIAL_RESOLUTION = 90
+SPATIAL_RESOLUTION = 30
 
 # Declaring planet's orbital parameters
 PLANET_SEMI_MAJOR_AXIS = 57909176 # in km
@@ -46,6 +47,7 @@ sunlight = np.zeros((len(time) + 1, len(lat), len(lon)))
 # Declaring planet's positions arrays
 planet_position_vector = np.zeros((len(time), 3))
 
+# computiong planet positions and sunlight times
 for j in range(len(time)):
 
     planet_position_vector[j, :] = from_orbital_to_cartesian_coordinates(
@@ -82,107 +84,17 @@ for j in range(len(time)):
 
 sunlight = normalize_np_array(sunlight)
 
-'''
-Writing output text file----------------------------------------------------------------------------
-'''
-
 end_date = datetime.datetime.now()
-
-output_directory = "output_directory"
-
-if not os.path.exists(output_directory):
-    os.makedirs(output_directory)
-
-with open(
-    "{0}/sunlit_surface_output_{1}.txt".format(
-        output_directory,
-        end_date.strftime("%Y%m%d_%H%M")
-    ),
-    "w"
-) as file:
-
-    file.write(
-        "----------------------------------------------\n"
-        + "Results of sunlit_surface \n"
-        + "Date {}\n".format(end_date.strftime("%Y%m%d_%H%M"))
-        + "----------------------------------------------\n\n"
-        + "Input parameters:\n"
-        + "    - computation time (h:m:s)      {}\n".format(end_date - start_date)
-        + "    - simulation time (s)           {}\n".format(NUMBER_OF_ITERATIONS * DELTA_T)
-        + "    - spatial resolution (degrees)  {}\n".format(SPATIAL_RESOLUTION)
-        + "----------------------------------------------\n\n"
-    )
-
-    file.write(
-        "Time array: \n"
-    )
-
-    for i in range(len(time) - 1):
-        file.write(str(time[i]) + ",")
-    file.write(str(time[-1]) + "\n\n")
-
-    file.write(
-        "Latitudes array: \n"
-    )
-
-    for i in range(len(lat) - 1):
-        file.write(str(lat[i]) + ",")
-    file.write(str(lat[-1]) + "\n\n")
-
-    file.write(
-        "Longitudes array: \n"
-    )
-
-    for i in range(len(lon) - 1):
-        file.write(str(lon[i]) + ",")
-    file.write(str(lon[-1]) + "\n\n")
-
-    file.write(
-        "Sunlight data: \n"
-    )
-
-    for i in range(len(sunlight)):
-        for j in range(len(sunlight[i])):
-            for k in range(len(sunlight[i][j]) - 1):
-                file.write(str(sunlight[i][j][k]) + ",")
-            file.write(str(sunlight[i][j][-1]) + "\n")
-
-'''
-Displaying animation--------------------------------------------------------------------------------
-'''
-
-fig = plt.figure()
-
-ax1 = fig.add_subplot(2, 1, 1)
-
-im = ax1.imshow(sunlight[0, :, :], cmap = plt.get_cmap('jet'), vmin = 0, vmax = 1)
-
-# function to update figure
-def updatefig(j):
-
-    im.set_array(sunlight[j, :, :])
-
-    return [im]
-
-ani = animation.FuncAnimation(
-    fig,
-    updatefig,
-    frames = range(NUMBER_OF_ITERATIONS),
-    interval = 50,
-    blit = True
+writing_output_text_file(
+    start_date,
+    end_date,
+    NUMBER_OF_ITERATIONS,
+    DELTA_T,
+    SPATIAL_RESOLUTION,
+    time,
+    lat,
+    lon,
+    sunlight
 )
 
-'''
-Displaying end status and saving image file---------------------------------------------------------
-'''
-
-ax2 = fig.add_subplot(2, 1, 2)
-
-im2 = ax2.imshow(sunlight[-1, :, :])
-
-plt.savefig("{0}/sunlit_surface_plot_{1}.png".format(
-    output_directory,
-    end_date.strftime("%Y%m%d_%H%M")
-))
-
-plt.show()
+display_animation(lat, lon, PLANET_RADIUS, sunlight)
