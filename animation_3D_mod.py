@@ -1,8 +1,7 @@
 """
-3D_script.py
-PyOpenGL script
+animation_3D_mod.py
+module for 3D animation based on opengl and pygame
 runs with python 2.7
-first command line parameter: sunlight data text file name
 """
 
 import numpy as np
@@ -13,108 +12,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from sunlit_surface_module import *
 
-def read_sunlight_data(file_name):
-    """
-    read sunlight data
-    input:
-     - file_name    string
-    output:
-     - sunlight     numpy array of floats (shape len(time), len(lat), len(lon))
-     - time         list of strings
-     - lat          list of strings
-     - lon          list of strings
-    """
-
-    with open(file_name, "r") as file:
-
-        file_contents = file.readlines()
-
-    time = file_contents[12][:-1].split(",")
-
-    for i in range(len(time)):
-
-        time[i] = float(time[i])
-
-    lat = file_contents[15][:-1].split(",")
-
-    for i in range(len(lat)):
-
-        lat[i] = float(lat[i])
-
-    lon = file_contents[18][:-1].split(",")
-
-    for i in range(len(lon)):
-
-        lon[i] = float(lon[i])
-
-    sunlight = np.zeros((len(time), len(lat), len(lon)))
-
-    for i in range(len(time)):
-        for j in range(len(lat)):
-            for k in range(len(lon)):
-
-                sunlight[i, j, k] = file_contents[21 + i * len(lat) + j].split(",")[k]
-
-    return sunlight, time, lat, lon
-
-def colorbar(float, data_array, color_array):
-    """
-    returns RGB triplet when given float between 0 and 1
-    input:
-     - float        float between 0 and 1
-     - data_array   list
-     - color_array  list of RGB triplets (lists of 3 floats)
-    output:
-     - RGB          list of 3 floats
-    """
-
-    max = np.amax(data_array)
-
-    min = np.amin(data_array)
-
-    if max == min:
-
-        float = 0.0
-
-    else:
-
-        float = (float - min) / (max - min)
-
-    index = int(round(float * (len(color_array) - 1)))
-
-    RGB = color_array[index]
-
-    return RGB
-
-sunlight, time, lat, lon = read_sunlight_data(sys.argv[1])
-
-# Declaring planetary constants
-PLANET_RADIUS = 2440 # in km
-
-vertices = []
-for i in range(len(lat)):
-    for j in range(len(lon)):
-        vertices.append(geographic_to_cartesian_coord(lat[i], lon[j], PLANET_RADIUS))
-
-edges = []
-for i in range(len(lat) - 1):
-    for j in range(len(lon) - 1):
-        edges.append((j + i*len(lon), j+1 + i*len(lon)))
-        edges.append((j+1 + i*len(lon), j+1 + (i+1)*len(lon)))
-        edges.append((j+1 + (i+1)*len(lon), j + (i+1)*len(lon)))
-        edges.append((j+ (i+1)*len(lon), j + i*len(lon)))
-
-surfaces = []
-for i in range(len(lat) - 1):
-    for j in range(len(lon) - 1):
-        surfaces.append((
-            j + i*len(lon),
-            j+1 + i*len(lon),
-            j+1 + (i+1)*len(lon),
-            j + (i+1)*len(lon)
-        ))
-
-colors = [
+RGB_colorbar_list = [
     [0.,0.,0.],
     [0.01568627450980392,0.,0.011764705882352941],
     [0.03529411764705882,0.,0.027450980392156862],
@@ -372,17 +270,96 @@ colors = [
     [1.,0.03137254901960784,0.]
 ]
 
-def globe(sunlight_data, i):
+def colorbar_relative(index, data_list, color_list):
+    """
+    returns RGB color triplet corresponding to one value of a list of data relative the whole list
+    input:
+     - index        integer
+     - data_list    list
+     - color_list   list of RGB triplets (lists of 3 floats)
+    output:
+     - RGB          list of 3 floats
+    """
+
+    max = np.amax(data_list)
+
+    min = np.amin(data_list)
+
+    if max == min:
+
+        float = 0.0
+
+    else:
+
+        float = (data_list[index] - min) / (max - min)
+
+    index = int(round(float * (len(color_list) - 1)))
+
+    RGB = color_list[index]
+
+    return RGB
+
+def colorbar_abs(float, color_list):
+    """
+    returns RGB triplet when given float between 0 and 1
+    input:
+     - float        float between 0 and 1
+     - color_list   list of RGB triplets (lists of 3 floats)
+    output:
+     - RGB          list of 3 floats
+    """
+
+    index = int(round(float * (len(color_list) - 1)))
+
+    RGB = color_list[index]
+
+    return RGB
+
+def display_planet(lat, lon, PLANET_RADIUS, sunlight_data_list):
+    """
+    displays the planet as polyhedron with sunlight time data in color
+    input:
+     - lat                  list
+     - lon                  list
+     - planet_radius        float
+     - sunlight_data_list   list
+    """
+
+    # defining list of the vertices of the polyhedron representing the planet
+    planet_vertices = []
+    for i in range(len(lat)):
+        for j in range(len(lon)):
+            planet_vertices.append(geographic_to_cartesian_coord(lat[i], lon[j], PLANET_RADIUS))
+
+    # defining list of edges connecting vertices of the polyhedron representing the planet
+    planet_edges = []
+    for i in range(len(lat) - 1):
+        for j in range(len(lon) - 1):
+            planet_edges.append((j + i*len(lon), j+1 + i*len(lon)))
+            planet_edges.append((j+1 + i*len(lon), j+1 + (i+1)*len(lon)))
+            planet_edges.append((j+1 + (i+1)*len(lon), j + (i+1)*len(lon)))
+            planet_edges.append((j+ (i+1)*len(lon), j + i*len(lon)))
+
+    # defining list of faces connecting vertices of the polyhedron representing the planet
+    planet_faces = []
+    for i in range(len(lat) - 1):
+        for j in range(len(lon) - 1):
+            planet_faces.append((
+                j + i*len(lon),
+                j+1 + i*len(lon),
+                j+1 + (i+1)*len(lon),
+                j + (i+1)*len(lon)
+            ))
 
     glBegin(GL_QUADS)
 
-    for i in range(len(surfaces)):
+    for i in range(len(planet_faces)):
 
-        glColor3fv(colorbar(sunlight_data[i], sunlight_data, colors))
+        glColor3fv(colorbar_relative(i, sunlight_data_list, RGB_colorbar_list))
 
-        for vertex in surfaces[i]:
+        for vertex in planet_faces[i]:
 
-            glVertex3fv(vertices[vertex])
+            glVertex3fv(planet_vertices[vertex])
 
     glEnd()
 
@@ -390,48 +367,30 @@ def globe(sunlight_data, i):
 
     glColor4fv((1, 1, 1, 0.5))
 
-    for edge in edges:
+    for edge in planet_edges:
 
         for vertex in edge:
 
-            glVertex3fv(vertices[vertex])
+            glVertex3fv(planet_vertices[vertex])
 
     glEnd()
 
-def main(sunlight):
+def display_animation(lat, lon, PLANET_RADIUS, sunlight_data):
 
-    i = 0 # initializing time counter
+    time_count = 0 # initializing time counter
 
+    # pygame display functions
     pygame.init()
-
     display = (800, 600)
-
     pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
-
     gluPerspective(45, (display[0]/display[1]), 0.1, 500000.0)
-
     glTranslatef(0.0, 0.0, -10000.0)
-
     glRotatef(0, 1, 0, 0)
-
     glRotatef(90, 0, 0, 1)
 
     while True:
 
-        # resetting time counter to zero when reached the end of the animation
-        if i == len(sunlight):
-
-            i = 0
-
-        # storing data from numpy array to a list that has the same shape as "surfaces"
-        sunlight_data = []
-
-        for j in range(len(sunlight[i]) - 1):
-
-            for k in range(len(sunlight[i][j]) - 1):
-
-                sunlight_data.append(sunlight[i, j, k])
-
+        # closing animation window at any event
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
@@ -440,16 +399,23 @@ def main(sunlight):
 
                 quit()
 
-        #glRotatef(1, 1, 1, 1)
-
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
-        globe(sunlight_data, i)
+        # resetting time counter to zero when reached the end of the animation
+        if time_count == len(sunlight_data):
+
+            time_count = 0
+
+        # storing data from numpy array to a list that has the same shape as "planet_faces"
+        sunlight_data_list = []
+        for j in range(len(sunlight_data[time_count]) - 1):
+            for k in range(len(sunlight_data[time_count][j]) - 1):
+                sunlight_data_list.append(sunlight_data[time_count, j, k])
+
+        display_planet(lat, lon, PLANET_RADIUS, sunlight_data_list)
+
+        time_count += 1 # increasing time counter
 
         pygame.display.flip()
 
-        pygame.time.wait(20)
-
-        i += 1 # increasing time counter
-
-main(sunlight)
+        pygame.time.wait(10)
