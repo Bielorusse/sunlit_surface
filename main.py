@@ -4,7 +4,7 @@ Python main script for sunlit_surface
 ----------------------------------------------------------------------------------------------------
 '''
 
-from sunlit_surface_module import *
+from science_mod import *
 from animation_3D_mod import *
 import math
 import numpy as np
@@ -16,7 +16,7 @@ import os
 start_date = datetime.datetime.now()
 
 # Declaring planet surface spatial resolution in degrees
-SPATIAL_RESOLUTION = 30
+SPATIAL_RESOLUTION = 15
 
 # Declaring planet's orbital parameters
 PLANET_SEMI_MAJOR_AXIS = 57909176 # in km
@@ -33,7 +33,7 @@ PLANET_ROTATIONAL_VELOCITY = 360 / PLANET_SIDEREAL_PERIOD # in degrees per secon
 PLANET_AXIAL_TILT = 2 # in degrees
 
 # Declaring time variables
-NUMBER_OF_ITERATIONS = int(round(6 * PLANET_SIDEREAL_PERIOD / 86400))
+NUMBER_OF_ITERATIONS = int(round(9 * PLANET_SIDEREAL_PERIOD / 86400))
 DELTA_T = 86400 # in seconds
 
 # Declaring time, latitude and longitude arrays
@@ -97,4 +97,12 @@ writing_output_text_file(
     sunlight
 )
 
-display_animation(lat, lon, PLANET_RADIUS, sunlight)
+display_animation(
+    time,
+    lat,
+    lon,
+    PLANET_ROTATIONAL_VELOCITY,
+    PLANET_RADIUS,
+    planet_position_vector,
+    sunlight
+)
