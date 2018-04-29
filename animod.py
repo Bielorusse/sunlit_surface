@@ -3,8 +3,8 @@ Module for 3D animation based on opengl and pygame.
 """
 
 import numpy as np
-import pygame
 import sys
+import pygame
 import pygame.locals
 import OpenGL.GL
 import OpenGL.GLU
