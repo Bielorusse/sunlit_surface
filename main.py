@@ -4,19 +4,17 @@ Python main script for sunlit_surface
 ----------------------------------------------------------------------------------------------------
 '''
 
-from science_mod import *
-from animation_3D_mod import *
+import scmod, animod, datetime, os, numpy as np
 import math
-import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import datetime
-import os
 
 start_date = datetime.datetime.now()
 
+PLANET_DISPLAY_RADIUS = 15.0e6 # km
+
 # Declaring planet surface spatial resolution in degrees
-SPATIAL_RESOLUTION = 15
+SPATIAL_RESOLUTION = 30
 
 # Declaring planet's orbital parameters
 PLANET_SEMI_MAJOR_AXIS = 57909176 # in km
@@ -50,7 +48,7 @@ planet_position_vector = np.zeros((len(time), 3))
 # computiong planet positions and sunlight times
 for j in range(len(time)):
 
-    planet_position_vector[j, :] = from_orbital_to_cartesian_coordinates(
+    planet_position_vector[j, :] = scmod.from_orbital_to_cartesian_coordinates(
         PLANET_SEMI_MAJOR_AXIS,
         PLANET_ECCENTRICITY,
         PLANET_INCLINATION,
@@ -64,28 +62,28 @@ for j in range(len(time)):
 
         for l in range(len(lon)):
 
-            prompt_progress(
+            scmod.prompt_progress(
                 j * len(lon) * len(lat) + k * len(lon) + l,
                 len(time) * len(lat) * len(lon)
             )
 
-            surface_position_vector = geographic_to_cartesian_coord(lat[k], lon[l], PLANET_RADIUS)
+            surface_position_vector = scmod.geographic_to_cartesian_coord(lat[k], lon[l], PLANET_RADIUS)
 
             # planet rotation
-            surface_position_vector = rotate_frame_around_z(
+            surface_position_vector = scmod.rotate_frame_around_z(
                 surface_position_vector, PLANET_ROTATIONAL_VELOCITY * time[j]
             )
 
-            sunlight_time = compute_sunlight(
+            sunlight_time = scmod.compute_sunlight(
                 surface_position_vector, planet_position_vector[j, :], DELTA_T
             )
 
             sunlight[j + 1, k, l] = sunlight[j, k, l] + sunlight_time
 
-sunlight = normalize_np_array(sunlight)
+sunlight = scmod.normalize_np_array(sunlight)
 
 end_date = datetime.datetime.now()
-writing_output_text_file(
+scmod.writing_output_text_file(
     start_date,
     end_date,
     NUMBER_OF_ITERATIONS,
@@ -97,12 +95,12 @@ writing_output_text_file(
     sunlight
 )
 
-display_animation(
+animod.display_animation(
     time,
     lat,
     lon,
     PLANET_ROTATIONAL_VELOCITY,
-    PLANET_RADIUS,
+    PLANET_DISPLAY_RADIUS,
     planet_position_vector,
     sunlight
 )
