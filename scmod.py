@@ -4,7 +4,6 @@ Python module for sunlit_surface
 ----------------------------------------------------------------------------------------------------
 '''
 
-import math
 import numpy as np
 import sys
 import datetime
@@ -26,40 +25,40 @@ def from_orbital_to_cartesian_coordinates(a, e, i, RAAN, om, t, mu):
     '''
 
     # converting angles from degrees to radians
-    i = i * math.pi / 180
-    RAAN = RAAN * math.pi / 180
-    om = om * math.pi / 180
+    i = i * np.pi / 180
+    RAAN = RAAN * np.pi / 180
+    om = om * np.pi / 180
 
     # computing mean anomaly
-    n = math.sqrt(mu / math.pow(a, 3))
+    n = np.sqrt(mu / np.power(a, 3.0))
     M = n * t
 
     # computing eccentric anomaly
     E = [M]
     for j in range(100):
-        E.append(E[j] + (M - E[j] + e * math.sin(E[j])) / (1 - e * math.cos(E[j])))
+        E.append(E[j] + (M - E[j] + e * np.sin(E[j])) / (1 - e * np.cos(E[j])))
         if(abs(E[j+1] - E[j]) < 1e-8):
             E = E[j+1]
             break
 
     # computing true anomaly
-    nu = 2 * math.atan2(
-            math.sqrt(1 - e) * math.cos(E / 2),
-            math.sqrt(1 + e) * math.sin(E / 2)
-        ) % (math.pi * 2)
+    nu = 2 * np.arctan2(
+            np.sqrt(1 - e) * np.cos(E / 2),
+            np.sqrt(1 + e) * np.sin(E / 2)
+        ) % (np.pi * 2)
 
     # computing radius
-    r = a * (1 -math.pow(e, 2)) / (1 + e * math.cos(nu))
+    r = a * (1 -np.power(e, 2.0)) / (1 + e * np.cos(nu))
 
     # computing position vector
     pos = [
         r *
-            (math.cos(om + nu) * math.cos(RAAN) -
-                math.sin(om + nu) * math.sin(RAAN) * math.cos(i)),
+            (np.cos(om + nu) * np.cos(RAAN) -
+                np.sin(om + nu) * np.sin(RAAN) * np.cos(i)),
         r *
-            (math.cos(om + nu) * math.sin(RAAN) -
-                math.sin(om + nu) * math.cos(RAAN) * math.cos(i)),
-        r * (math.sin(om + nu) * math.sin(i))
+            (np.cos(om + nu) * np.sin(RAAN) -
+                np.sin(om + nu) * np.cos(RAAN) * np.cos(i)),
+        r * (np.sin(om + nu) * np.sin(i))
     ]
 
     return pos
@@ -73,13 +72,13 @@ def geographic_to_cartesian_coord(lat, lon, r):
     - Outputs:
     '''
 
-    lat = lat * math.pi / 180
-    lon = lon * math.pi / 180
+    lat = lat * np.pi / 180
+    lon = lon * np.pi / 180
 
     position_vector = [
-        r * math.cos(lon) * math.cos(lat),
-        r * math.sin(lon) * math.cos(lat),
-        r * math.sin(lat)
+        r * np.cos(lon) * np.cos(lat),
+        r * np.sin(lon) * np.cos(lat),
+        r * np.sin(lat)
     ]
 
     return position_vector
@@ -94,11 +93,11 @@ def rotate_frame_around_z(input_vector, angle):
     - Outputs:
     '''
 
-    angle = angle * math.pi / 180
+    angle = angle * np.pi / 180
 
     output_vector = [
-        math.cos(angle) * input_vector[0] - math.sin(angle) * input_vector[1],
-        math.sin(angle) * input_vector[0] + math.cos(angle) * input_vector[1],
+        np.cos(angle) * input_vector[0] - np.sin(angle) * input_vector[1],
+        np.sin(angle) * input_vector[0] + np.cos(angle) * input_vector[1],
         input_vector[2]
     ]
 
@@ -114,21 +113,56 @@ def rotate_frame_around_x(input_vector, angle):
     - Outputs:
     '''
 
-    angle = angle * math.pi / 180
+    angle = angle * np.pi / 180
 
     output_vector = [
         input_vector[0],
-        math.cos(angle) * input_vector[1] - math.sin(angle) * input_vector[1],
-        math.sin(angle) * input_vector[2] + math.cos(angle) * input_vector[2],
+        np.cos(angle) * input_vector[1] - np.sin(angle) * input_vector[1],
+        np.sin(angle) * input_vector[2] + np.cos(angle) * input_vector[2],
     ]
 
     return output_vector
 
 def compute_sunlight(surface_vector, sun_vector, delta_t):
     '''
-    Computes sunlight time based on position on the planet and position of the planet with respect
-    to the sun
+    Computes sunlight time of a position on the planet.
+    Based on position on the planet and position of the planet with respect to the sun and duration
+    delta_t.
+    Contains a subfunction "twilight_function" which defines a shadowy zone on the edge of the
+    sunlit half of the planet.
+
+    Inputs:
+     -
+    Outputs:
+     -
     '''
+
+    def twilight_function(x):
+        '''
+        Defines a shadow zone on the edge of the sunlit half of the planet.
+        Inputs:
+            - x     = float
+        Outputs:
+            - y     = float
+        '''
+
+        asymptote_value = 1
+        slope = 1e-1
+        fact = 1e1
+
+        if (x <= 0):
+
+            y = 0
+
+        elif(x > 0):
+
+            y = asymptote_value * (1 - slope / ( fact * x + 1 ))
+
+        else:
+
+            print(error)
+
+        return y
 
     surface_vector = surface_vector / np.linalg.norm(surface_vector)
 
@@ -139,32 +173,6 @@ def compute_sunlight(surface_vector, sun_vector, delta_t):
     sunlight_time = delta_t * twilight_function(prdct)
 
     return sunlight_time
-
-def twilight_function(x):
-    '''
-    Inputs:
-        - x     = float
-    Outputs:
-        - y     = float
-    '''
-
-    asymptote_value = 1
-    slope = 1e-1
-    fact = 1e1
-
-    if (x <= 0):
-
-        y = 0
-
-    elif(x > 0):
-
-        y = asymptote_value * (1 - slope / ( fact * x + 1 ))
-
-    else:
-
-        print(error)
-
-    return y
 
 def normalize_np_array(input_array):
     '''
