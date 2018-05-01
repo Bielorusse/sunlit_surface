@@ -10,7 +10,7 @@ import pygame.locals
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-SCALE_FACTOR = 2e-8 # to shoten distances for the OpenGL animation
+SCALE_FACTOR = 3e-8 # to shoten distances for the OpenGL animation
 
 RGB_colorbar_list = [
     [0.,0.,0.],
@@ -288,28 +288,6 @@ for i in range(len(sun_lat) - 1):
             j + (i+1)*len(sun_lon)
         ))
 
-def display_sun_direction(planet_position_vector):
-    """
-    display sun direction
-    input:
-     - planet_position_vector list
-    """
-
-    sun_dir_vertices = [
-        (0, 0, 0),
-        (- planet_position_vector[0], - planet_position_vector[1], - planet_position_vector[2])
-    ]
-
-    glBegin(GL_LINES)
-
-    glColor4fv((1, 1, 1, 0))
-
-    for i in range(len(sun_dir_vertices)):
-
-        glVertex3fv(sun_dir_vertices[i])
-
-    glEnd()
-
 def display_sun(sun_vertices, sun_surfaces):
     """
     displays sun
@@ -391,7 +369,7 @@ def display_planet(
      - lat                          list
      - lon                          list
      - PLANET_ROTATIONAL_VELOCITY   float
-     - planet_radius                float
+     - PLANET_RADIUS                float
      - planet_position_vector       list
      - sunlight_data_list           list
     """
@@ -428,6 +406,7 @@ def display_planet(
                 j + (i+1)*len(lon)
             ))
 
+    # drawing faces
     glBegin(GL_QUADS)
 
     for i in range(len(planet_faces)):
@@ -440,6 +419,7 @@ def display_planet(
 
     glEnd()
 
+    # drawing edges
     glBegin(GL_LINES)
 
     glColor4fv((1, 1, 1, 0))
@@ -449,6 +429,24 @@ def display_planet(
         for vertex in edge:
 
             glVertex3fv(planet_vertices[vertex])
+
+    glEnd()
+
+    # drawing zero longitude direction
+    marker_coords = [[0, 0, 0], [-0.39 * PLANET_RADIUS, 1.5 * PLANET_RADIUS, 0]]
+    for i in range(len(marker_coords)):
+        marker_coords[i] = scmod.rotate_frame_around_z(
+            marker_coords[i],
+            PLANET_ROTATIONAL_VELOCITY * time
+        )
+        marker_coords[i] = marker_coords[i] + planet_position_vector
+
+    glBegin(GL_LINES)
+
+    glColor4fv((1, 0, 0, 0))
+
+    glVertex3fv(marker_coords[0])
+    glVertex3fv(marker_coords[1])
 
     glEnd()
 
@@ -477,7 +475,7 @@ def display_animation(
     pygame.init()
     display = (800, 600)
     pygame.display.set_mode(display, pygame.locals.DOUBLEBUF|pygame.locals.OPENGL)
-    gluPerspective(45, (display[0]/display[1]), 0.1, 50)
+    gluPerspective(70, (display[0]/display[1]), 0.1, 50)
     glTranslatef(0.0, 0.0, -5)
     glRotatef(0, 1, 0, 0)
     glRotatef(90, 0, 0, 1)

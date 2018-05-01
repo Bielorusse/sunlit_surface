@@ -1,4 +1,4 @@
-Sunlit_surface V0.1.12
+Sunlit_surface V0.1.13
 Date: 01.05.2018
 Author: Thibaut Voirand
 
@@ -8,6 +8,5 @@ develop an animation showing the temporal evolution of the sunlit areas of Mercu
 potentially be used for the case of any other planet orbiting a star.
 
 Added in this version:
- - glEnable(GL_DEPTH_TEST) added in animod: surfaces now opaque
- - SCALE_FACTOR added in animod to shorten distances: nothing was displaying when distances above
- 1e3 km
+ - perspective angle and scale factor changed
+ - marker added on the planet at a given longitude
