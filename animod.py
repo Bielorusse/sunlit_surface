@@ -2,13 +2,15 @@
 Module for 3D animation based on opengl and pygame.
 """
 
-import numpy as np
-import sys
-import pygame
-import pygame.locals
-import OpenGL.GL
-import OpenGL.GLU
 import scmod
+import numpy as np
+import pygame
+import sys
+import pygame.locals
+from OpenGL.GL import *
+from OpenGL.GLU import *
+
+SCALE_FACTOR = 2e-8 # to shoten distances for the OpenGL animation
 
 RGB_colorbar_list = [
     [0.,0.,0.],
@@ -269,7 +271,7 @@ RGB_colorbar_list = [
 ]
 
 SUN_RESOLUTION = 30 # in degrees
-SUN_DISPLAY_RADIUS = 5.0e6 # in km
+SUN_DISPLAY_RADIUS = 5.0e6 * SCALE_FACTOR # in km
 sun_lat = list(range(-90, 91, SUN_RESOLUTION))
 sun_lon = list(range(0, 361, SUN_RESOLUTION))
 sun_vertices = []
@@ -298,15 +300,15 @@ def display_sun_direction(planet_position_vector):
         (- planet_position_vector[0], - planet_position_vector[1], - planet_position_vector[2])
     ]
 
-    OpenGL.GL.glBegin(GL_LINES)
+    glBegin(GL_LINES)
 
-    OpenGL.GL.glColor4fv((1, 1, 1, 0.5))
+    glColor4fv((1, 1, 1, 0))
 
     for i in range(len(sun_dir_vertices)):
 
-        OpenGL.GL.glVertex3fv(sun_dir_vertices[i])
+        glVertex3fv(sun_dir_vertices[i])
 
-    OpenGL.GL.glEnd()
+    glEnd()
 
 def display_sun(sun_vertices, sun_surfaces):
     """
@@ -316,17 +318,17 @@ def display_sun(sun_vertices, sun_surfaces):
      - sun_surfaces     list
     """
 
-    OpenGL.GL.glBegin(GL_QUADS)
+    glBegin(GL_QUADS)
+
+    glColor4fv((1, 1, 0, 0))
 
     for i in range(len(sun_surfaces)):
 
         for j in sun_surfaces[i]:
 
-            OpenGL.GL.glColor3fv((1, 1, 0))
+            glVertex3fv(sun_vertices[j])
 
-            OpenGL.GL.glVertex3fv(sun_vertices[j])
-
-    OpenGL.GL.glEnd()
+    glEnd()
 
 def colorbar_relative(index, data_list, color_list):
     """
@@ -426,29 +428,29 @@ def display_planet(
                 j + (i+1)*len(lon)
             ))
 
-    OpenGL.GL.glBegin(GL_QUADS)
+    glBegin(GL_QUADS)
 
     for i in range(len(planet_faces)):
 
-        OpenGL.GL.glColor3fv(colorbar_relative(i, sunlight_data_list, RGB_colorbar_list))
+        glColor3fv(colorbar_relative(i, sunlight_data_list, RGB_colorbar_list))
 
         for vertex in planet_faces[i]:
 
-            OpenGL.GL.glVertex3fv(planet_vertices[vertex])
+            glVertex3fv(planet_vertices[vertex])
 
-    OpenGL.GL.glEnd()
+    glEnd()
 
-    OpenGL.GL.glBegin(GL_LINES)
+    glBegin(GL_LINES)
 
-    OpenGL.GL.glColor4fv((1, 1, 1, 0.5))
+    glColor4fv((1, 1, 1, 0))
 
     for edge in planet_edges:
 
         for vertex in edge:
 
-            OpenGL.GL.glVertex3fv(planet_vertices[vertex])
+            glVertex3fv(planet_vertices[vertex])
 
-    OpenGL.GL.glEnd()
+    glEnd()
 
 def display_animation(
     time,
@@ -475,10 +477,11 @@ def display_animation(
     pygame.init()
     display = (800, 600)
     pygame.display.set_mode(display, pygame.locals.DOUBLEBUF|pygame.locals.OPENGL)
-    OpenGL.GLU.gluPerspective(45, (display[0]/display[1]), 0.1, 500.0e6)
-    OpenGL.GL.glTranslatef(0.0, 0.0, -250.0e6)
-    OpenGL.GL.glRotatef(0, 1, 0, 0)
-    OpenGL.GL.glRotatef(90, 0, 0, 1)
+    gluPerspective(45, (display[0]/display[1]), 0.1, 50)
+    glTranslatef(0.0, 0.0, -5)
+    glRotatef(0, 1, 0, 0)
+    glRotatef(90, 0, 0, 1)
+    glEnable(GL_DEPTH_TEST)
 
     while True:
 
@@ -491,7 +494,7 @@ def display_animation(
 
                 quit()
 
-        OpenGL.GL.glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
         # resetting time counter to zero when reached the end of the animation
         if time_count == len(time):
@@ -509,8 +512,8 @@ def display_animation(
             lat,
             lon,
             PLANET_ROTATIONAL_VELOCITY,
-            PLANET_RADIUS,
-            planet_position_vectors[time_count],
+            PLANET_RADIUS * SCALE_FACTOR,
+            planet_position_vectors[time_count] * SCALE_FACTOR,
             sunlight_data_list
         )
 
