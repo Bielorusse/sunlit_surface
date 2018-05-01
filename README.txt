@@ -1,5 +1,5 @@
-Sunlit_surface V0.1.11
-Date: 08.04.2018
+Sunlit_surface V0.1.12
+Date: 01.05.2018
 Author: Thibaut Voirand
 
 Mercury has an eccentric orbit and an orbital resonance of 3:2. In consequence, the surface is not
