@@ -53,12 +53,12 @@ def writing_output_text_file(
 
 start_date = datetime.datetime.now()
 
-SAVE_VIDEO = True
+SAVE_VIDEO = False
 
 PLANET_DISPLAY_RADIUS = 15.0e6 # km
 
 # Declaring planet surface spatial resolution in degrees
-SPATIAL_RESOLUTION = 5
+SPATIAL_RESOLUTION = 30
 
 # Declaring planet's orbital parameters
 PLANET_SEMI_MAJOR_AXIS = 57909176 # in km
@@ -75,7 +75,7 @@ PLANET_ROTATIONAL_VELOCITY = 360 / PLANET_SIDEREAL_PERIOD # in degrees per secon
 PLANET_AXIAL_TILT = 2 # in degrees
 
 # Declaring time variables
-NUMBER_OF_ITERATIONS = int(round(6 * PLANET_SIDEREAL_PERIOD / 86400))
+NUMBER_OF_ITERATIONS = int(round(9 * PLANET_SIDEREAL_PERIOD / 86400))
 DELTA_T = 86400 # in seconds
 
 # Declaring time, latitude and longitude arrays

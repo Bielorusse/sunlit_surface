@@ -13,6 +13,7 @@ import os
 from datetime import datetime
 import cv2
 import imageio
+from colour import Color
 
 SCALE_FACTOR = 3e-8 # to shoten distances for the OpenGL animation
 
@@ -274,25 +275,6 @@ RGB_colorbar_list = [
     [1.,0.03137254901960784,0.]
 ]
 
-SUN_RESOLUTION = 30 # in degrees
-SUN_DISPLAY_RADIUS = 5.0e6 * SCALE_FACTOR # in km
-sun_lat = list(range(-90, 91, SUN_RESOLUTION))
-sun_lon = list(range(0, 361, SUN_RESOLUTION))
-sun_vertices = []
-for i in range(len(sun_lat)):
-    for j in range(len(sun_lon)):
-        sun_vertices.append(scmod.geographic_to_cartesian_coord(sun_lat[i], sun_lon[j], SUN_DISPLAY_RADIUS))
-sun_surfaces = []
-for i in range(len(sun_lat) - 1):
-    for j in range(len(sun_lon) - 1):
-        sun_surfaces.append((
-            j + i*len(sun_lon),
-            j+1 + i*len(sun_lon),
-            j+1 + (i+1)*len(sun_lon),
-            j + (i+1)*len(sun_lon)
-        ))
-
-
 def add_leading_zeros_to_fname(folder_name):
     """
     Add leading zeros to files names so that they all have the same number of digits.
@@ -382,26 +364,6 @@ def save_frame(frame_count, output_dir):
 
     pygame.image.save(surface, output_dir + "/temp/{}.png".format(frame_count))
 
-
-def display_sun(sun_vertices, sun_surfaces):
-    """
-    displays sun
-    input:
-     - sun_vertices     list
-     - sun_surfaces     list
-    """
-
-    glBegin(GL_QUADS)
-
-    glColor4fv((1, 1, 0, 0))
-
-    for i in range(len(sun_surfaces)):
-
-        for j in sun_surfaces[i]:
-
-            glVertex3fv(sun_vertices[j])
-
-    glEnd()
 
 def colorbar_relative(index, data_list, color_list):
     """
@@ -568,6 +530,8 @@ def display_animation(
 
     time_count = 0 # initializing time counter
 
+    sun_coordinates, sun_colorbar = compute_sun_display()
+
     # pygame display functions
     pygame.init()
     display = (800, 600)
@@ -628,7 +592,7 @@ def display_animation(
             sunlight_data_list
         )
 
-        display_sun(sun_vertices, sun_surfaces)
+        display_sun(sun_coordinates, sun_colorbar)
 
         time_count += 1 # increasing time counter
 
@@ -639,3 +603,74 @@ def display_animation(
             save_frame(time_count, "output_directory")
 
         pygame.time.wait(100)
+
+def compute_sun_display():
+    """
+    Computes sun colorbar and display coordinates
+
+    Output:
+    -sun_coordinates    list of lists of tuples of 3 floats (vertices coordinates)
+    -sun_colorbar       list of tuples of 3 floats (rgb)
+    """
+
+    def circle_coordinates(radius, angular_resolution):
+        """
+        Compute circle coordinates based on radius and angular resolution.
+
+        Input:
+        -radius                     float
+        -angular_resolution (deg)   integer
+
+        Output:
+        -coordinates                list of tuples of 3 floats
+        """
+
+        coordinates = []
+
+        for angle in np.arange(0, 360, angular_resolution):
+
+            coordinates.append((
+                radius * np.cos(angle*np.pi/180),
+                radius * np.sin(angle*np.pi/180),
+                0.0
+            ))
+
+        return coordinates
+
+    sun_coordinates = []
+
+    radius_list = [0.2 + np.log(i)/10.0 for i in np.arange(1, 5, 0.01)]
+
+    for radius in radius_list:
+
+        sun_coordinates.append(circle_coordinates(radius, 10))
+
+    sun_colorbar = list(Color("yellow").range_to(Color("black"), len(radius_list)))
+
+    return sun_coordinates, sun_colorbar
+
+def display_sun(circles_coordinates, colorbar):
+    """
+    Displays sun based on concentric circles coordinates and colorbar.
+
+    Input:
+    -circles_coordinates    list of lists of tuples of 3 floats (vertices coords.)
+    -colorbar               list of tuples of 3 floats (rgb)
+    """
+
+    for i, coordinates in enumerate(circles_coordinates):
+
+        glBegin(GL_POLYGON)
+
+        glColor4fv((
+            colorbar[i].rgb[0],
+            colorbar[i].rgb[1],
+            colorbar[i].rgb[2],
+            0+i/len(coordinates)
+        ))
+
+        for j in range(len(coordinates)):
+
+            glVertex3fv(coordinates[j])
+
+        glEnd()
