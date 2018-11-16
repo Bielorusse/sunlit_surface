@@ -1,5 +1,5 @@
-Sunlit_surface V0.1.14
-Date: 20180928
+Sunlit_surface V0.1.15
+Date: 20181001
 Author: Thibaut Voirand
 
 Mercury has an eccentric orbit and an orbital resonance of 3:2. In consequence, the surface is not
@@ -8,6 +8,6 @@ develop an animation showing the temporal evolution of the sunlit areas of Mercu
 potentially be used for the case of any other planet orbiting a star.
 
 Added in this version:
- - keeping orbital to cartesian function of sunlit_surface_v0.1.13.1
- - save_frame, image_to_gif, and image_to_video functions added in animod
- - SAVE_VIDEO boolean variable added in main
+ - writing_output_text_file function moved to main
+ - time, lat, lon, sunlight deleted in writing_output_text_file
+ - error in scmod function from_orbital_to_cartesian_coordinates corrected (position formula y)

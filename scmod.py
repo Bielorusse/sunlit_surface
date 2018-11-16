@@ -56,7 +56,7 @@ def from_orbital_to_cartesian_coordinates(a, e, i, RAAN, om, t, mu):
             (np.cos(om + nu) * np.cos(RAAN) -
                 np.sin(om + nu) * np.sin(RAAN) * np.cos(i)),
         r *
-            (np.cos(om + nu) * np.sin(RAAN) -
+            (np.cos(om + nu) * np.sin(RAAN) +
                 np.sin(om + nu) * np.cos(RAAN) * np.cos(i)),
         r * (np.sin(om + nu) * np.sin(i))
     ]
@@ -213,87 +213,3 @@ def prompt_progress(iterations_done, iterations_total):
 
     sys.stdout.write("Progress: {0:.2f} % \r".format(progress_percent))
     sys.stdout.flush()
-
-def writing_output_text_file(
-    start_date,
-    end_date,
-    NUMBER_OF_ITERATIONS,
-    DELTA_T,
-    SPATIAL_RESOLUTION,
-    time,
-    lat,
-    lon,
-    sunlight
-):
-    """
-    writing output text file
-    input:
-     - start_date   datetime.datetime
-     - end_date     datetime.datetime
-     - NUMBER_OF_ITERATIONS     integer
-     - DELTA_T                  float
-     - SPATIAL_RESOLUTION       integer
-     - time                     list
-     - lat                      list
-     - lon                      list
-     - sunlight                 numpy array of floats (shape len(time)+1, len(lat), len(lon))
-    """
-
-    output_directory = "output_directory"
-
-    if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
-
-    with open(
-        "{0}/sunlit_surface_output_{1}.txt".format(
-            output_directory,
-            end_date.strftime("%Y%m%d_%H%M")
-        ),
-        "w"
-    ) as file:
-
-        file.write(
-            "----------------------------------------------\n"
-            + "Results of sunlit_surface \n"
-            + "Date {}\n".format(end_date.strftime("%Y%m%d_%H%M"))
-            + "----------------------------------------------\n\n"
-            + "Input parameters:\n"
-            + "    - computation time (h:m:s)      {}\n".format(end_date - start_date)
-            + "    - simulation time (s)           {}\n".format(NUMBER_OF_ITERATIONS * DELTA_T)
-            + "    - spatial resolution (degrees)  {}\n".format(SPATIAL_RESOLUTION)
-            + "----------------------------------------------\n\n"
-        )
-
-        file.write(
-            "Time array: \n"
-        )
-
-        for i in range(len(time) - 1):
-            file.write(str(time[i]) + ",")
-        file.write(str(time[-1]) + "\n\n")
-
-        file.write(
-            "Latitudes array: \n"
-        )
-
-        for i in range(len(lat) - 1):
-            file.write(str(lat[i]) + ",")
-        file.write(str(lat[-1]) + "\n\n")
-
-        file.write(
-            "Longitudes array: \n"
-        )
-
-        for i in range(len(lon) - 1):
-            file.write(str(lon[i]) + ",")
-        file.write(str(lon[-1]) + "\n\n")
-
-        file.write(
-            "Sunlight data: \n"
-        )
-
-        for i in range(len(sunlight)):
-            for j in range(len(sunlight[i])):
-                for k in range(len(sunlight[i][j]) - 1):
-                    file.write(str(sunlight[i][j][k]) + ",")
-                file.write(str(sunlight[i][j][-1]) + "\n")

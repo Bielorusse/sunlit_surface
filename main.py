@@ -9,6 +9,48 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
+def writing_output_text_file(
+    start_date,
+    end_date,
+    NUMBER_OF_ITERATIONS,
+    DELTA_T,
+    SPATIAL_RESOLUTION
+):
+    """
+    writing output text file
+    input:
+     - start_date   datetime.datetime
+     - end_date     datetime.datetime
+     - NUMBER_OF_ITERATIONS     integer
+     - DELTA_T                  float
+     - SPATIAL_RESOLUTION       integer
+    """
+
+    output_directory = "output_directory"
+
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+
+    with open(
+        "{0}/sunlit_surface_output_{1}.txt".format(
+            output_directory,
+            end_date.strftime("%Y%m%d_%H%M")
+        ),
+        "w"
+    ) as file:
+
+        file.write(
+            "----------------------------------------------\n"
+            + "Results of sunlit_surface \n"
+            + "Date {}\n".format(end_date.strftime("%Y%m%d_%H%M"))
+            + "----------------------------------------------\n\n"
+            + "Input parameters:\n"
+            + "    - computation time (h:m:s)      {}\n".format(end_date - start_date)
+            + "    - simulation time (s)           {}\n".format(NUMBER_OF_ITERATIONS * DELTA_T)
+            + "    - spatial resolution (degrees)  {}\n".format(SPATIAL_RESOLUTION)
+            + "----------------------------------------------\n\n"
+        )
+
 start_date = datetime.datetime.now()
 
 SAVE_VIDEO = True
@@ -29,11 +71,11 @@ PLANET_ARGUMENT_OF_PERIAPSIS = 0 # in degrees
 MU_SUN = 1.32712440018E11 # in km3/s2
 PLANET_RADIUS = 2440 # in km
 PLANET_SIDEREAL_PERIOD = 58.646 * 86400 # in seconds
-PLANET_ROTATIONAL_VELOCITY = - 360 / PLANET_SIDEREAL_PERIOD # in degrees per second
+PLANET_ROTATIONAL_VELOCITY = 360 / PLANET_SIDEREAL_PERIOD # in degrees per second
 PLANET_AXIAL_TILT = 2 # in degrees
 
 # Declaring time variables
-NUMBER_OF_ITERATIONS = int(round(9 * PLANET_SIDEREAL_PERIOD / 86400))
+NUMBER_OF_ITERATIONS = int(round(6 * PLANET_SIDEREAL_PERIOD / 86400))
 DELTA_T = 86400 # in seconds
 
 # Declaring time, latitude and longitude arrays
@@ -85,16 +127,12 @@ for j in range(len(time)):
 sunlight = scmod.normalize_np_array(sunlight)
 
 end_date = datetime.datetime.now()
-scmod.writing_output_text_file(
+writing_output_text_file(
     start_date,
     end_date,
     NUMBER_OF_ITERATIONS,
     DELTA_T,
-    SPATIAL_RESOLUTION,
-    time,
-    lat,
-    lon,
-    sunlight
+    SPATIAL_RESOLUTION
 )
 
 animod.display_animation(
