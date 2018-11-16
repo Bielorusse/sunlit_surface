@@ -1,4 +1,4 @@
-Sunlit_surface V0.1.16
+Sunlit_surface V0.1.17
 Date: 20181001
 Author: Thibaut Voirand
 
@@ -8,5 +8,4 @@ develop an animation showing the temporal evolution of the sunlit areas of Mercu
 potentially be used for the case of any other planet orbiting a star.
 
 Added in this version:
- - sun display improved: prettier but slower (compute_sun_display function added and
- display_sun function modified in animod)
+ - trajectory display added

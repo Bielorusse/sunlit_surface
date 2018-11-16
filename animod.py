@@ -15,7 +15,7 @@ import cv2
 import imageio
 from colour import Color
 
-SCALE_FACTOR = 3e-8 # to shoten distances for the OpenGL animation
+SCALE_FACTOR = 3e-8 # to shorten distances for the OpenGL animation
 
 RGB_colorbar_list = [
     [0.,0.,0.],
@@ -594,6 +594,8 @@ def display_animation(
 
         display_sun(sun_coordinates, sun_colorbar)
 
+        display_trajectory(planet_position_vectors * SCALE_FACTOR)
+
         time_count += 1 # increasing time counter
 
         pygame.display.flip()
@@ -606,7 +608,7 @@ def display_animation(
 
 def compute_sun_display():
     """
-    Computes sun colorbar and display coordinates
+    Computes sun colorbar and display coordinates.
 
     Output:
     -sun_coordinates    list of lists of tuples of 3 floats (vertices coordinates)
@@ -674,3 +676,22 @@ def display_sun(circles_coordinates, colorbar):
             glVertex3fv(coordinates[j])
 
         glEnd()
+
+def display_trajectory(planet_position_vectors):
+    """
+    Display planet trajectory.
+
+    Input:
+    -planet_position_vectors
+    """
+
+    glBegin(GL_LINES)
+
+    glColor4fv((0.5, 0.5, 0.5, 0))
+
+    for i in range(0, len(planet_position_vectors), 20):
+
+        glVertex3fv(planet_position_vectors[i])
+        glVertex3fv(planet_position_vectors[i+2])
+
+    glEnd()

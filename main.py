@@ -58,7 +58,7 @@ SAVE_VIDEO = False
 PLANET_DISPLAY_RADIUS = 15.0e6 # km
 
 # Declaring planet surface spatial resolution in degrees
-SPATIAL_RESOLUTION = 30
+SPATIAL_RESOLUTION = 10
 
 # Declaring planet's orbital parameters
 PLANET_SEMI_MAJOR_AXIS = 57909176 # in km
