@@ -9,6 +9,10 @@ import sys
 import pygame.locals
 from OpenGL.GL import *
 from OpenGL.GLU import *
+import os
+from datetime import datetime
+import cv2
+import imageio
 
 SCALE_FACTOR = 3e-8 # to shoten distances for the OpenGL animation
 
@@ -288,6 +292,97 @@ for i in range(len(sun_lat) - 1):
             j + (i+1)*len(sun_lon)
         ))
 
+
+def add_leading_zeros_to_fname(folder_name):
+    """
+    Add leading zeros to files names so that they all have the same number of digits.
+    10 digits max.
+
+    Input:
+    -folder_name    string
+    """
+
+    files = [file for file in os.listdir(folder_name) if file.endswith(".png")]
+
+    max_digits = len(max(files, key=len))
+
+    for file in files:
+
+        leading_zeros = ""
+
+        missing_zeros = max_digits - len(file)
+
+        for i in range(missing_zeros):
+
+            leading_zeros += "0"
+
+        os.rename(folder_name + "/" + file, folder_name + "/" + leading_zeros + file)
+
+def image_to_video(output_dir):
+    """
+    Creates video file from images stored in a folder.
+
+    Input:
+    -output_dir     string
+    """
+
+    folder_name = output_dir + "/temp"
+    video_name = output_dir + "/" + datetime.now().strftime("%Y%m%d-%H%M") + "-video.avi"
+
+    add_leading_zeros_to_fname(folder_name)
+
+    fourcc = cv2.VideoWriter_fourcc(*"XVID")
+    fps = 16
+
+    images = [img for img in os.listdir(folder_name) if img.endswith(".png")]
+    frame = cv2.imread(os.path.join(folder_name, images[0]))
+    height, width, layers = frame.shape
+
+    video = cv2.VideoWriter(video_name, fourcc, fps, (width,height))
+
+    for image in images:
+        video.write(cv2.imread(os.path.join(folder_name, image)))
+
+    cv2.destroyAllWindows()
+    video.release()
+
+def image_to_gif(output_dir):
+    """
+    Creates gif from images stored in a folder.
+
+    Input:
+    -output_dir     string
+    """
+
+    folder_name = output_dir + "/temp"
+    video_name = output_dir + "/" + datetime.now().strftime("%Y%m%d-%H%M") + "-animation.gif"
+
+    add_leading_zeros_to_fname(folder_name)
+
+    images = [
+        imageio.imread(os.path.join(folder_name, img)) \
+        for img in os.listdir(folder_name) if img.endswith(".png")
+    ]
+
+    imageio.mimsave(video_name, images, duration=1/16)
+
+def save_frame(frame_count, output_dir):
+    """
+    Save current frame to file.
+    Input:
+    -count          integer
+    -output_dir     string
+    """
+
+    if not os.path.isdir(output_dir + "/temp"):
+
+        os.mkdir(output_dir + "/temp")
+
+    surface = pygame.display.get_surface()
+
+    pygame.image.save(surface, output_dir + "/temp/{}.png".format(frame_count))
+
+
 def display_sun(sun_vertices, sun_surfaces):
     """
     displays sun
@@ -457,7 +552,8 @@ def display_animation(
     PLANET_ROTATIONAL_VELOCITY,
     PLANET_RADIUS,
     planet_position_vectors,
-    sunlight_data
+    sunlight_data,
+    SAVE_VIDEO
 ):
     """
     displays animation
@@ -467,6 +563,7 @@ def display_animation(
      - PLANET_RADIUS            float
      - planet_position_vectors  list
      - sunlight_data            numpy array of floats
+     - SAVE_VIDEO               boolean
     """
 
     time_count = 0 # initializing time counter
@@ -497,7 +594,23 @@ def display_animation(
         # resetting time counter to zero when reached the end of the animation
         if time_count == len(time):
 
-            time_count = 0
+            if SAVE_VIDEO:
+
+                image_to_video("output_directory")
+
+                image_to_gif("output_directory")
+
+                pygame.quit()
+
+                quit()
+
+            else:
+
+                time_count = 0
+
+                pygame.display.flip()
+
+                pygame.time.wait(100)
 
         # storing data from numpy array to a list that has the same shape as "planet_faces"
         sunlight_data_list = []
@@ -520,5 +633,9 @@ def display_animation(
         time_count += 1 # increasing time counter
 
         pygame.display.flip()
+
+        if SAVE_VIDEO:
+
+            save_frame(time_count, "output_directory")
 
         pygame.time.wait(100)

@@ -11,10 +11,12 @@ import matplotlib.animation as animation
 
 start_date = datetime.datetime.now()
 
+SAVE_VIDEO = True
+
 PLANET_DISPLAY_RADIUS = 15.0e6 # km
 
 # Declaring planet surface spatial resolution in degrees
-SPATIAL_RESOLUTION = 30
+SPATIAL_RESOLUTION = 5
 
 # Declaring planet's orbital parameters
 PLANET_SEMI_MAJOR_AXIS = 57909176 # in km
@@ -27,7 +29,7 @@ PLANET_ARGUMENT_OF_PERIAPSIS = 0 # in degrees
 MU_SUN = 1.32712440018E11 # in km3/s2
 PLANET_RADIUS = 2440 # in km
 PLANET_SIDEREAL_PERIOD = 58.646 * 86400 # in seconds
-PLANET_ROTATIONAL_VELOCITY = 360 / PLANET_SIDEREAL_PERIOD # in degrees per second
+PLANET_ROTATIONAL_VELOCITY = - 360 / PLANET_SIDEREAL_PERIOD # in degrees per second
 PLANET_AXIAL_TILT = 2 # in degrees
 
 # Declaring time variables
@@ -102,5 +104,6 @@ animod.display_animation(
     PLANET_ROTATIONAL_VELOCITY,
     PLANET_DISPLAY_RADIUS,
     planet_position_vector,
-    sunlight
+    sunlight,
+    SAVE_VIDEO
 )
